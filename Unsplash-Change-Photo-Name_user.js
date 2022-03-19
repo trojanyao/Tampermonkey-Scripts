@@ -1,5 +1,5 @@
-// ==UserScript==
-// charset=utf-8
+﻿// ==UserScript==
+// @license      MIT License
 // @name         Unsplash 下载文件名修改 Unsplash Change Photo Name
 // @namespace    http://tampermonkey.net/
 // @version      1.0
