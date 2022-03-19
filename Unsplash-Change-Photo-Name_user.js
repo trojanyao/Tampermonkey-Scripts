@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         Unsplash-Change-Photo-Name
+// @name         Unsplash 下载文件名修改 Unsplash Change Photo Name
 // @namespace    http://tampermonkey.net/
 // @version      1.0
 // @description  Change the file name of download photo.
