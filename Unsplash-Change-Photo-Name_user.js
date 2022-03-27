@@ -21,7 +21,7 @@
         let dateStr = document.querySelector('time').innerText
         let date = new Date(dateStr).toLocaleDateString().replace(/\//g, '.')
         // 位置
-        let location = document.querySelector('header+div > div > div > div:last-child > div:nth-child(4) > div')
+        let location = document.querySelector('header+div > div > div > div:last-child > div:nth-child(3) > div')
         location = location?.innerText || undefined
         // 作者
         let photographer = document.querySelector('header+div > div > div > div > header > div > span > div:last-child > span a').href
