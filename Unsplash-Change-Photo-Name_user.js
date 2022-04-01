@@ -19,7 +19,7 @@
         // ----- 图片信息 -----
         // 发布日期
         let dateStr = document.querySelector('time').innerText
-        let date = new Date(dateStr).toLocaleDateString().replace(/\//g, '.')
+        let date = new Date(dateStr).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '.')
         // 位置
         let location = document.querySelector('header+div > div > div > div:last-child > div:nth-child(3) > div')
         location = location?.innerText || undefined
