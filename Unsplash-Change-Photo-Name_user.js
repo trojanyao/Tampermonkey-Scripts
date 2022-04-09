@@ -6,6 +6,7 @@
 // @description  Change the file name of download photo.
 // @author       TROJAN
 // @match        https://unsplash.com/photos/*
+// @require      https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.2/moment.min.js
 // @grant        none
 // ==/UserScript==
 
@@ -18,11 +19,25 @@
 
         // ----- 图片信息 -----
         // 发布日期
-        let dateStr = document.querySelector('time').innerText
-        let date = new Date(dateStr).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '.')
+        let date, dateStr = document.querySelector('time').innerText
+        if (dateStr.includes('ago')) {
+            // 最近发布，无确切日期
+            let daysAgo = dateStr.match(/\d+/g)?.[0]
+            console.log('几天前', daysAgo)
+            date = moment().subtract(daysAgo).format('YYYY.MM.DD')
+        } else {
+            // 较早发布，有准确日期
+            date = new Date(dateStr).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '.')
+        }
+        console.log('日期', date)
+
         // 位置
         let location = document.querySelector('header+div > div > div > div:last-child > div:nth-child(3) > div')
         location = location?.innerText || undefined
+        if (location === 'Share') {
+            location = document.querySelector('header+div > div > div > div:last-child > div:nth-child(4) > div')
+            location = location?.innerText || undefined
+        }
         // 作者
         let photographer = document.querySelector('header+div > div > div > div > header > div > span > div:last-child > span a').href
         photographer = photographer.match(/\@\w+/)[0]
