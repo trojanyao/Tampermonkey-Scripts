@@ -54,7 +54,7 @@
         a.href = imgUrl
 
         // 修改文件名
-        a.download = `${date} ${location ? '【' + location + '】' : ' '}Photo by ${photographer} [${link}].jpg`
+        a.download = `${date}${location ? '【' + location + '】' : ' '}Photo by ${photographer} [${link}].jpg`
     }
 
     window.onload = () => {
