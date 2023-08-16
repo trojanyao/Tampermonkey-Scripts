@@ -110,11 +110,14 @@ function showRate() {
 	}
 }
 
-// 移除短评和影评
+// 移除短评、影评和小组讨论
 function deleteTheShit() {
 	const comment = document.querySelector("#comments-section")
 	comment.style.display = "none"
 
 	const reviews = document.querySelector("#reviews-wrapper")
 	reviews.style.display = "none"
+
+	const discuss = document.querySelector('.section-discussion')
+	discuss.style.display = "none"
 }
