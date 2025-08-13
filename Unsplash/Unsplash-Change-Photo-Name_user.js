@@ -2,7 +2,7 @@
 // @name         Unsplash 下载文件名修改 Unsplash Change Photo Name
 // @license      MIT License
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      1.1
 // @description  Change the file name of download photo.
 // @author       TROJAN
 // @match        https://unsplash.com/*
