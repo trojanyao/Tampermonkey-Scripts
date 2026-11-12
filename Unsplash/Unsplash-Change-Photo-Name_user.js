@@ -15,6 +15,9 @@
 (function () {
     'use strict';
 
+    // 下载链接形如 /photos/<id>/download?ixid=...&force=true
+    const DOWNLOAD_LINK = 'a[href*="/photos/"][href*="/download"]'
+
     // 去掉文件名中的非法字符
     function sanitize(str) {
         return (str || '')
@@ -48,26 +51,25 @@
         return undefined
     }
 
-    async function changeName() {
-        // 获取下载按钮
-        let a = document.querySelector('header > div:last-child > div:last-child > div > a')
-
+    async function buildFileName(link) {
+        // 下载链接里的照片 ID
+        const id = new URL(link.href).pathname.match(/^\/photos\/([^/]+)\/download/)?.[1]
         // 当前页面的照片 slug，如 a-mountain-range-...-P94s4MYZpuc
         const pageSlug = window.location.pathname.match(/^\/photos\/([^/]+)/)?.[1]
-        if (!pageSlug) return
+        const onPhotoPage = !!(pageSlug && id && pageSlug.endsWith(id))
 
-        const info = await fetchPhotoInfo([pageSlug, pageSlug.slice(-11)])
+        const info = await fetchPhotoInfo([id, onPhotoPage ? pageSlug : null])
         console.log('照片信息', info)
 
-        const slug = info?.slug || pageSlug
+        const slug = info?.slug || (onPhotoPage ? pageSlug : id)
 
-        // ----- 图片信息 -----
         // 发布日期
-        const datetime = document.querySelector('time')?.getAttribute('datetime') || info?.created_at || ''
+        const datetime = (onPhotoPage && document.querySelector('time')?.getAttribute('datetime'))
+            || info?.created_at || ''
         const date = datetime.slice(0, 10).replace(/-/g, '.')
 
         // 摄影师：@username
-        const username = info?.user?.username ? `@${info.user.username}` : getPhotographerFromDOM(a)
+        const username = info?.user?.username ? `@${info.user.username}` : getPhotographerFromDOM(link)
         const photographer = sanitize(username) || '未知摄影师'
 
         // 地址，没有则用标题（alt_description，即未登录时页面显示的标题），都没有则为空
@@ -75,25 +77,48 @@
         const place = sanitize(info?.location?.name || info?.location?.title)
             || (title && title[0].toUpperCase() + title.slice(1))
 
-        // 图片地址（跨域获取）
+        return `${date}【${photographer}】${place ? place + ' ' : ''}[${slug}].jpg`
+    }
+
+    let downloading = false
+
+    // 在点击时拦截下载，保证 SPA 跳转后、页面刚打开时都能生效
+    document.addEventListener('click', async (event) => {
+        const link = event.target.closest?.(DOWNLOAD_LINK)
+        if (!link || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+
+        event.preventDefault()
+        event.stopImmediatePropagation()
+        if (downloading) return
+        downloading = true
+
+        const prevCursor = link.style.cursor
+        link.style.cursor = 'progress'
         try {
-            a.removeAttribute('target')
-            let imgUrl = a.href
-            const res = await fetch(imgUrl)
-            const blob = await res.blob()
-            imgUrl = window.URL.createObjectURL(blob)
-            console.log('图片实际地址', imgUrl)
-            a.href = imgUrl
-        } catch(error) {
-            console.error('[跨域获取图片 Blob 地址失败] ', error)
+            const [fileName, blob] = await Promise.all([
+                buildFileName(link),
+                fetch(link.href).then(res => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+                    return res.blob()
+                }),
+            ])
+
+            const url = URL.createObjectURL(blob)
+            const tmp = document.createElement('a')
+            tmp.href = url
+            tmp.download = fileName
+            document.body.appendChild(tmp)
+            tmp.click()
+            tmp.remove()
+            // 延迟释放，避免下载尚未开始就被回收
+            setTimeout(() => URL.revokeObjectURL(url), 60 * 1000)
+            console.log('✅ 已下载：', fileName)
+        } catch (error) {
+            console.error('[自定义文件名下载失败，改用默认下载] ', error)
+            window.location.href = link.href
+        } finally {
+            link.style.cursor = prevCursor
+            downloading = false
         }
-
-        // 修改文件名
-        a.download = `${date}【${photographer}】${place ? place + ' ' : ''}[${slug}].jpg`
-        console.log('✅ 可以下载：', a.download)
-    }
-
-    window.onload = () => {
-        changeName()
-    }
+    }, true)
 })();
